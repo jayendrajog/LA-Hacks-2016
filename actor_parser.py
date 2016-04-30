@@ -13,6 +13,7 @@
 #import urllib.request
 #import http.client
 import requests
+import json
 #r = urllib.request.urlopen("https://www.marktai.com/upload/facescrub_actors.txt").read()
 
 
@@ -40,24 +41,39 @@ def checkValid(arg):
 		r = requests.get(arg[3])
 		#r = requests.get("asdfasdfdsfsafsaf.com")
 		return r.status_code == 200
-	except requests.exceptions.RequestException, e:
+	except requests.exceptions.RequestException:
 		return False
 
 # split on tabs
 res = map((lambda x: x.split("\t")), DATA)
 
-# split on //
-#res = map((lambda x: x[3].split("//")), res)
-
-
-#for data in res:
- #	print(data[3])
-
+# filter out invalid URL
 valid = filter(checkValid, res)
 
-for data in valid:
-	print(data[3])
+#for data in valid:
+#	print(data[3])
 
+
+count = 0
+retArray = []
+
+nameSet = set()
+for data in valid:
+	if data[0] not in nameSet:
+		newDictionary = {}
+		newDictionary["name"] = data[0]
+		newDictionary["url"] = data[3]
+		newDictionary["id"] = count
+
+		retArray.append(newDictionary)
+		nameSet.add(data[0])
+		count += 1
+
+#print(repr(retArray))
+
+retJSON = json.dumps(retArray)
+f = open("faces.json", "w")
+f.write(retJSON)
 
 
 
