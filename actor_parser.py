@@ -18,7 +18,7 @@ import json
 
 
 # file object.p
-DATA = open("facescrub_actors_test.txt", "r")
+DATA = open("facescrub_actors.txt", "r")
 
 #for line in DATA:
 	#print(line)
@@ -26,6 +26,7 @@ DATA = open("facescrub_actors_test.txt", "r")
 #	print(ret[3])
 #print(DATA.readline())
 
+nameSet = set()
 def checkValid(arg):
 	#print(arg[3])
 	#return True
@@ -37,9 +38,13 @@ def checkValid(arg):
 	#return True
 	#print(arg[3][1])
 	#return True
+	if arg[0] in nameSet:
+		# we already had URL for this name
+		return False
 	try:
 		r = requests.get(arg[3])
 		#r = requests.get("asdfasdfdsfsafsaf.com")
+		nameSet.add(arg[0])
 		return r.status_code == 200
 	except requests.exceptions.RequestException:
 		return False
@@ -57,16 +62,16 @@ valid = filter(checkValid, res)
 count = 0
 retArray = []
 
-nameSet = set()
+#nameSet = set()
 for data in valid:
-	if data[0] not in nameSet:
+	#if data[0] not in nameSet:
 		newDictionary = {}
 		newDictionary["name"] = data[0]
 		newDictionary["url"] = data[3]
 		newDictionary["id"] = count
 
 		retArray.append(newDictionary)
-		nameSet.add(data[0])
+		#nameSet.add(data[0])
 		count += 1
 
 #print(repr(retArray))
