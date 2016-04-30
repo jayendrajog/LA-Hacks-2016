@@ -1,0 +1,7 @@
+pkg
+github.com
+bin/*
+upload
+log.txt
+bower_components
+creds
