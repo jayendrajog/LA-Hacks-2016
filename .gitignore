@@ -5,3 +5,5 @@ upload
 log.txt
 bower_components
 creds
+faces/*
+faces.json
