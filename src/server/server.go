@@ -4,11 +4,11 @@ import (
 	"db"
 	"fmt"
 	"github.com/gorilla/mux"
-	"ipCircBuffer"
 	"log"
+	"math/rand"
 	"net/http"
-	"posts"
 	"time"
+	"ws"
 )
 
 func Log(handler http.HandlerFunc) http.HandlerFunc {
@@ -20,34 +20,21 @@ func Log(handler http.HandlerFunc) http.HandlerFunc {
 
 func Run(port uint16) {
 	//start := time.Now()
-	err := posts.Init("posts")
 
-	ipCircBuffer.Init()
+	rand.Seed(time.Now().Unix())
 
 	db.Open()
 	defer db.Close()
 
-	if err != nil {
-		log.Println(err)
-	}
 	//log.Println("Took %s", time.Now().Sub(start))
 	//log.Println(post)
 	r := mux.NewRouter()
-	r.HandleFunc("/posts", Log(getPostList))
-	r.HandleFunc("/posts/{Title}", Log(getPost))
-	r.HandleFunc("/posts/{Title}/paragraph/{id:[0-9]+}", Log(getParagraph)).Methods("GET")
-	r.HandleFunc("/posts/{Title}/info", Log(getInfo)).Methods("GET")
-	r.HandleFunc("/desktopIP", Log(getDesktopIP)).Methods("GET")
-	r.HandleFunc("/desktopIP", Log(postDesktopIP)).Methods("POST")
-	r.HandleFunc("/desktopIP", Log(clearDesktopIP)).Methods("DELETE")
-	r.HandleFunc("/raspberryIP", Log(getRaspberryIP)).Methods("GET")
-	r.HandleFunc("/raspberryIP", Log(postRaspberryIP)).Methods("POST")
-	r.HandleFunc("/raspberryIP", Log(clearRaspberryIP)).Methods("DELETE")
-	r.HandleFunc("/requestCount", Log(get24HourRequests)).Methods("GET")
-	r.HandleFunc("/shortlink", Log(redirectToShortlink)).Methods("GET")
-	r.HandleFunc("/shortlink/", Log(redirectToShortlink)).Methods("GET")
-	r.HandleFunc("/shortlink", Log(makeShortlink)).Methods("POST")
-	r.HandleFunc("/shortlink/{linkID}", Log(getShortlink)).Methods("GET")
+	r.HandleFunc("/session", Log(makeSession)).Methods("POST")
+	r.HandleFunc("/sessions", Log(makeSession)).Methods("POST")
+	r.HandleFunc("/sessions/{ID:[0-9]+}/nextPicture", Log(getNextPicture)).Methods("GET")
+	r.HandleFunc("/sessions/{ID:[0-9]+}/reaction", Log(updateReaction)).Methods("POST")
+	r.HandleFunc("/sessions/{ID:[0-9]+}/ws", Log(ws.ServeWs)).Methods("GET")
+
 	// r.HandleFunc("/shortlink/{linkID}", deleteShortlink).Methods("DELETE")
 
 	for {
