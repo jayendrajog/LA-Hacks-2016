@@ -12,10 +12,10 @@
     src: url(pirulen.ttf);
 }
 
+
 body, html { 
     overflow-x: hidden; 
-    overflow-y: hidden;
-    background-color: white;
+    background-color: #17191A;
     height: 100%;
 }
 
@@ -57,7 +57,7 @@ h1 {
 }
 
 #snapshot{
-    /*margin-left: 80px;*/
+    margin-left: 80px;
     background-color: #3D3D3D;
 }
 
@@ -156,8 +156,26 @@ function capture() {
         url: "http://sparck.co/api/photos",
         contentType: false,
         processData: false,
-        data: fd
+        data: fd,
+        success: captureSuccess
     });
+}
+
+function captureSuccess(data) {
+    var text = JSON.parse(data);
+    var userID = text['UserID'];
+    var name = text['Name'];
+
+    console.log(name);
+
+    var result = document.getElementById("snapshot");
+    parent = result.parentNode;
+    //parent.removeChild(result);
+
+    var para = document.createElement("h1");
+    var message = document.createTextNode("Welcome, " + name + "!");
+    para.appendChild(message);
+    parent.appendChild(para);
 }
 
 function add(){
