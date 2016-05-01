@@ -340,7 +340,7 @@ func CheckFace(filename string) (uint, string, error) {
 	return 0, "", nil
 }
 
-// func NewUser(filename string) (uint, string, error) {
+// func NewUser(name, filename string) (uint, string, error) {
 // 	id, err := GetFaceID("http://sparck.co/tempFaces/" + filename)
 // 	if err != nil {
 // 		return 0, "", err

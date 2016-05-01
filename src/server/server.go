@@ -50,6 +50,8 @@ func Run(port uint16) {
 	r.HandleFunc("/photo", Log(checkFace)).Methods("POST")
 	r.HandleFunc("/photos", Log(checkFace)).Methods("POST")
 
+	// r.HandleFunc("/user", Log(newUser)).Methods("POST")
+
 	r.HandleFunc("/creds", Log(getCreds)).Methods("GET")
 
 	r.HandleFunc("/myo_password", Log(check_password)).Methods("POST")

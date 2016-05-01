@@ -126,6 +126,8 @@ func upload(w http.ResponseWriter, r *http.Request) {
 // 	}
 // 	defer f.Close()
 // 	io.Copy(f, file)
+// 	face_auth.NewUser()
+
 // 	fmt.Fprintf(w, "%v", handler.Header)
 // }
 
