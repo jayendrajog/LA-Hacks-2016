@@ -138,7 +138,7 @@ function capture() {
     canvas = document.getElementById('snapshot');
 
     var context = canvas.getContext('2d');
-    context.drawImage(videoElement, 0, 0, 800, 600);    
+    context.drawImage(videoElement, 0, 0, 300, 150);    
 
     var dataURL = canvas.toDataURL('image/jpeg', 1.0);
     var blob = dataURItoBlob(dataURL);
