@@ -6,4 +6,4 @@ log.txt
 bower_components
 creds
 faces/*
-tempfaces/*
+tempFaces/*
