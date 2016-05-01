@@ -340,37 +340,37 @@ func CheckFace(filename string) (uint, string, error) {
 	return 0, "", nil
 }
 
-// func NewUser(name, filename string) (uint, string, error) {
-// 	id, err := GetFaceID("http://sparck.co/tempFaces/" + filename)
-// 	if err != nil {
-// 		return 0, "", err
-// 	}
-// 	tempFaces_ids := make(map[uint]string)
-// 	for k, v := range Faces_ids {
-// 		tempFaces_ids[k] = v
-// 	}
+func NewUser(name string, password uint, filename string) (uint, error) {
 
-// 	tempFaces_ids[0] = id
+	userID := Next_id
+	Next_id += 1
 
-// 	similarities := ManyVerifyFace(0, tempFaces_ids)
+	url := "http://sparck.co/faces/" + filename
 
-// 	var maxUser uint = 0
-// 	var maxVal float64 = 0
-// 	for user, val := range similarities {
-// 		if val > maxVal {
-// 			maxUser = user
-// 			maxVal = val
-// 		}
-// 	}
-// 	log.Println(similarities)
+	id, err := GetFaceID(url)
+	if err != nil {
+		return 0, err
+	}
 
-// 	if maxVal > 0.65 {
-// 		name, err := passwords.GetName(maxUser)
-// 		if err != nil {
-// 			return 0, "", err
-// 		}
-// 		return maxUser, name, nil
-// 	}
+	Faces_ids[userID] = id
 
-// 	return 0, "", nil
-// }
+	newMyoPassword, err := db.Db.Prepare("INSERT INTO myo_passwords VALUES(?, ?, ?)")
+	if err != nil {
+		return 0, err
+	}
+	_, err = newMyoPassword.Exec(userID, name, password)
+	if err != nil {
+		return 0, err
+	}
+
+	newPhotos, err := db.Db.Prepare("INSERT INTO photos VALUES(?, ?, ?)")
+	if err != nil {
+		return 0, err
+	}
+	_, err = newPhotos.Exec(userID, url, id)
+	if err != nil {
+		return 0, err
+	}
+
+	return userID, nil
+}

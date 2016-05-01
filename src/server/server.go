@@ -10,6 +10,7 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"passwords"
 	"time"
 	"ws"
 )
@@ -37,6 +38,7 @@ func Run(port uint16) {
 	defer db.Close()
 
 	face_auth.Init()
+	passwords.Init()
 	//log.Println("Took %s", time.Now().Sub(start))
 	//log.Println(post)
 	r := mux.NewRouter()
@@ -50,9 +52,11 @@ func Run(port uint16) {
 	r.HandleFunc("/photo", Log(checkFace)).Methods("POST")
 	r.HandleFunc("/photos", Log(checkFace)).Methods("POST")
 
-	// r.HandleFunc("/user", Log(newUser)).Methods("POST")
+	r.HandleFunc("/user", Log(newUser)).Methods("POST")
 
 	r.HandleFunc("/creds", Log(getCreds)).Methods("GET")
+
+	r.HandleFunc("/creds", Log(makeCreds)).Methods("POST")
 
 	r.HandleFunc("/myo_password", Log(check_password)).Methods("POST")
 

@@ -2,12 +2,32 @@ package passwords
 
 import (
 	"db"
+	"encoding/json"
 	"encrypt"
 	"errors"
+	"io/ioutil"
 	"log"
 )
 
 var ipIDs = make(map[string]uint)
+var key string
+
+func Init() error {
+
+	keys := make(map[string]string)
+	content, err := ioutil.ReadFile("./creds/key.json")
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(content, &keys)
+	if err != nil {
+		return err
+	}
+
+	key = keys["key"]
+
+	return nil
+}
 
 func GetName(userID uint) (string, error) {
 	var name string
@@ -53,14 +73,36 @@ func GetCreds(domain, remoteAddr string) ([2]string, error) {
 
 	err := db.Db.QueryRow("SELECT username, password FROM credentials WHERE userID=? AND domain=?", userID, domain).Scan(&username, &encrypted_password)
 
-	password, err := encrypt.Decrypt("0ELBGZt6AZf9U6Qc6SteS3tPJ9lpeTFf", encrypted_password)
-	if err != nil {
-		return ret, err
-	}
-
+	password, err := encrypt.Decrypt(key, encrypted_password)
 	if err != nil {
 		return ret, err
 	}
 
 	return [2]string{username, password}, nil
+}
+
+func MakeCreds(domain, username, password, remoteAddr string) error {
+
+	var userID uint
+	var ok bool
+
+	if userID, ok = ipIDs[remoteAddr]; !ok {
+		return errors.New("Not logged in")
+	}
+
+	encrypted_password, err := encrypt.Encrypt(key, password)
+	if err != nil {
+		return err
+	}
+
+	newCred, err := db.Db.Prepare("INSERT INTO credentials VALUES(?, ?, ?, ?)")
+	if err != nil {
+		return err
+	}
+	_, err = newCred.Exec(userID, domain, username, encrypted_password)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
