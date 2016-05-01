@@ -2,6 +2,7 @@ package server
 
 import (
 	"db"
+	// "encrypt"
 	"face_auth"
 	"fmt"
 	"github.com/gorilla/mux"
@@ -23,13 +24,19 @@ func Log(handler http.HandlerFunc) http.HandlerFunc {
 func Run(port uint16) {
 	//start := time.Now()
 
-	rand.Seed(time.Now().Unix())
+	// encrypted, err := encrypt.Encrypt("0ELBGZt6AZf9U6Qc6SteS3tPJ9lpeTFf", "password")
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
-	face_auth.Init()
+	// log.Println(encrypted)
+
+	rand.Seed(time.Now().Unix())
 
 	db.Open()
 	defer db.Close()
 
+	face_auth.Init()
 	//log.Println("Took %s", time.Now().Sub(start))
 	//log.Println(post)
 	r := mux.NewRouter()

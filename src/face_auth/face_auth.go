@@ -2,6 +2,7 @@ package face_auth
 
 import (
 	"bytes"
+	"db"
 	"encoding/json"
 	"errors"
 	"log"
@@ -25,11 +26,68 @@ var FACES_DB = map[uint]string{
 
 var Faces_ids = make(map[uint]string)
 
+var Next_id uint = 0
+
 var client *http.Client
 
 func Init() {
 	client = &http.Client{}
-	ManyGetFacesID(FACES_DB)
+	log.Println(PopulateFaces_ids())
+}
+
+func PopulateFaces_ids() error {
+	rows, err := db.Db.Query("SELECT userID, url, faceID FROM photos")
+	if err != nil {
+		return err
+	}
+
+	var userID uint
+	var url string
+	var faceID string
+	var count = 0
+	respChan := make(chan UintString)
+
+	for rows.Next() {
+		if err := rows.Scan(&userID, &url, &faceID); err != nil {
+			return err
+		}
+		if faceID == "" {
+			count += 1
+			go func(userID uint, url string, respChan chan UintString) {
+				faceID, err := GetFaceID(url)
+				if err != nil {
+					log.Println(err)
+					return
+				}
+
+				updateFaceID, err := db.Db.Prepare("UPDATE photos SET faceID=? WHERE userID=? AND url=?")
+				if err != nil {
+					log.Println(err)
+					return
+				}
+				_, err = updateFaceID.Exec(faceID, userID, url)
+				respChan <- UintString{userID, faceID}
+			}(userID, url, respChan)
+		} else {
+			Faces_ids[userID] = faceID
+		}
+
+		if userID > Next_id {
+			Next_id = userID
+		}
+	}
+
+	Next_id += 1
+	for {
+		if count == 0 {
+			break
+		}
+
+		face_id := <-respChan
+		Faces_ids[face_id.Uint] = face_id.String
+		count -= 1
+	}
+	return nil
 }
 
 type ErrorMessage struct {
@@ -247,10 +305,10 @@ func ManyVerifyFace(testuser uint, faces_ids map[uint]string) map[uint]float64 {
 	return similarities
 }
 
-func CheckFace(filename string) (string, error) {
+func CheckFace(filename string) (uint, string, error) {
 	id, err := GetFaceID("http://sparck.co/tempFaces/" + filename)
 	if err != nil {
-		return "", err
+		return 0, "", err
 	}
 	tempFaces_ids := make(map[uint]string)
 	for k, v := range Faces_ids {
@@ -274,11 +332,45 @@ func CheckFace(filename string) (string, error) {
 	if maxVal > 0.65 {
 		name, err := passwords.GetName(maxUser)
 		if err != nil {
-			return "", err
+			return 0, "", err
 		}
-		return name, nil
+		return maxUser, name, nil
 	}
 
-	return "", nil
-
+	return 0, "", nil
 }
+
+// func NewUser(filename string) (uint, string, error) {
+// 	id, err := GetFaceID("http://sparck.co/tempFaces/" + filename)
+// 	if err != nil {
+// 		return 0, "", err
+// 	}
+// 	tempFaces_ids := make(map[uint]string)
+// 	for k, v := range Faces_ids {
+// 		tempFaces_ids[k] = v
+// 	}
+
+// 	tempFaces_ids[0] = id
+
+// 	similarities := ManyVerifyFace(0, tempFaces_ids)
+
+// 	var maxUser uint = 0
+// 	var maxVal float64 = 0
+// 	for user, val := range similarities {
+// 		if val > maxVal {
+// 			maxUser = user
+// 			maxVal = val
+// 		}
+// 	}
+// 	log.Println(similarities)
+
+// 	if maxVal > 0.65 {
+// 		name, err := passwords.GetName(maxUser)
+// 		if err != nil {
+// 			return 0, "", err
+// 		}
+// 		return maxUser, name, nil
+// 	}
+
+// 	return 0, "", nil
+// }

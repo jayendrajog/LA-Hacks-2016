@@ -2,11 +2,12 @@ package passwords
 
 import (
 	"db"
+	"encrypt"
 	"errors"
 	"log"
 )
 
-var idIps = make(map[uint]string)
+var ipIDs = make(map[string]uint)
 
 func GetName(userID uint) (string, error) {
 	var name string
@@ -31,23 +32,31 @@ func VerifyPassword(userID, password uint, remoteAddr string) (bool, error) {
 		return false, nil
 	}
 
-	idIps[userID] = remoteAddr
-	log.Printf("%d has ip:%s\n", userID, remoteAddr)
+	ipIDs[remoteAddr] = userID
+	log.Printf("%s has user:%d\n", remoteAddr, userID)
 	return true, nil
 }
 
-func GetCreds(userID uint, domain, remoteAddr string) ([2]string, error) {
+func GetCreds(domain, remoteAddr string) ([2]string, error) {
 
 	var ret [2]string
 
-	if ref_remoteAddr, ok := idIps[userID]; !ok || ref_remoteAddr != remoteAddr {
-		return ret, errors.New("ID does not match")
+	var userID uint
+	var ok bool
+
+	if userID, ok = ipIDs[remoteAddr]; !ok {
+		return ret, errors.New("Not logged in")
 	}
 
 	var username string
-	var password string
+	var encrypted_password string
 
-	err := db.Db.QueryRow("SELECT username, password FROM credentials WHERE userID=? AND domain=?", userID, domain).Scan(&username, &password)
+	err := db.Db.QueryRow("SELECT username, password FROM credentials WHERE userID=? AND domain=?", userID, domain).Scan(&username, &encrypted_password)
+
+	password, err := encrypt.Decrypt("0ELBGZt6AZf9U6Qc6SteS3tPJ9lpeTFf", encrypted_password)
+	if err != nil {
+		return ret, err
+	}
 
 	if err != nil {
 		return ret, err
