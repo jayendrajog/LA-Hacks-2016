@@ -15,7 +15,7 @@ func Open() {
 	closeChan = make(chan bool)
 	var err error
 	Db, err = sql.Open("mysql",
-		"root:@tcp(127.0.0.1:3306)/shortlink")
+		"root:@tcp(127.0.0.1:3306)/sparck")
 
 	if err != nil {
 		log.Fatal(err)
