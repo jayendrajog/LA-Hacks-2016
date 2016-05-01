@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta content="Sparck" name="title">
+<title>Sparck</title>
+  
+<style>
+#container {
+    margin: 0px auto;
+    width: 500px;
+    height: 375px;
+    border: 10px #333 solid;
+}
+#videoElement {
+    width: 500px;
+    height: 375px;
+    background-color: #666;
+}
+h1 {
+    text-align: center;
+}
+.capture {
+    text-align: center;
+}
+</style>
+
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+
+</head>
+  
+<body>
+
+<h1>Sparck</h1>
+<div id="container">
+    <video autoplay="true" id="videoElement" width="320" height="240">
+     
+    </video>
+</div>
+
+<script>
+
+var captured = false;
+var video = document.querySelector("#videoElement");
+ 
+navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia || navigator.oGetUserMedia;
+ 
+if (navigator.getUserMedia) {       
+    navigator.getUserMedia({video: true}, handleVideo, videoError);
+}
+ 
+function handleVideo(stream) {
+    video.src = window.URL.createObjectURL(stream);
+}
+ 
+function videoError(e) {
+    // do something
+}
+
+function dataURItoBlob(dataURI) {
+    'use strict'
+    var byteString, 
+        mimestring 
+
+    if(dataURI.split(',')[0].indexOf('base64') !== -1 ) {
+        byteString = atob(dataURI.split(',')[1])
+    } else {
+        byteString = decodeURI(dataURI.split(',')[1])
+    }
+
+    mimestring = dataURI.split(',')[0].split(':')[1].split(';')[0]
+
+    var content = new Array();
+    for (var i = 0; i < byteString.length; i++) {
+        content[i] = byteString.charCodeAt(i)
+    }
+
+    return new Blob([new Uint8Array(content)], {type: mimestring});
+}
+
+function capture() {
+    var canvas;
+
+    if (!captured) {
+        captured = true;
+        canvas = document.createElement('canvas');
+        document.body.appendChild(canvas);
+        canvas.id = "snapshot";
+        canvas.width = 320;
+        canvas.height = 240;
+    } else {
+        canvas = document.getElementById('snapshot');
+    }
+
+    var context = canvas.getContext('2d');
+    context.drawImage(video, 0, 0, 320, 240);
+
+    var dataURL = canvas.toDataURL('image/jpeg', 1.0);
+    var blob = dataURItoBlob(dataURL);
+    var fd = new FormData(document.forms[0]);
+    fd.append("file", blob);
+
+    $.ajax({
+        method: "POST",
+        url: "http://sparck.co/api/photos",
+        contentType: false,
+        processData: false,
+        data: fd
+    });
+}
+
+</script>
+
+<br>
+
+<div class="capture">
+    <button type="button" onclick="capture()">Capture</button>
+</div>
+
+<br>
+
+</body>
+</html>
