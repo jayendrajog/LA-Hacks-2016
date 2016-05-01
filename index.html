@@ -57,7 +57,7 @@ h1 {
 }
 
 #snapshot{
-    margin-left: 80px;
+    /*margin-left: 80px;*/
     background-color: #3D3D3D;
 }
 
@@ -86,7 +86,13 @@ h1 {
 
     <div class="capture">
     <button class = "btn btn-default" type="button" onclick="capture()">Capture</button>
+    <br><br>
+    <form action= "">
+        Name: <input type="text" name="name" value="" id="getname">
+        <button class = "btn btn-default" type="button" onclick="add()">Add User</button>
+    </form>
     </div>
+
 </div>
 
 <script>
@@ -145,13 +151,35 @@ function capture() {
     var fd = new FormData(document.forms[0]);
     fd.append("file", blob);
 
-    /*$.ajax({
+    $.ajax({
         method: "POST",
         url: "http://sparck.co/api/photos",
         contentType: false,
         processData: false,
         data: fd
-    });*/
+    });
+}
+
+function add(){
+    var name = document.getElementById('getname').value;
+    var canvas;
+    canvas = document.getElementById('snapshot');
+
+    var context = canvas.getContext('2d');
+    context.drawImage(videoElement, 0, 0, 800, 600);    
+
+    var dataURL = canvas.toDataURL('image/jpeg', 1.0);
+    var blob = dataURItoBlob(dataURL);
+    var fd = new FormData(document.forms[0]);
+    fd.append("file", blob);
+
+     $.ajax({
+        method: "POST",
+        url: "http://sparck.co/api/user?name="+name+"",
+        contentType: false,
+        processData: false,
+        data: fd
+    });
 }
 
 </script>
