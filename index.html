@@ -12,10 +12,10 @@
     src: url(pirulen.ttf);
 }
 
+
 body, html { 
     overflow-x: hidden; 
-    overflow-y: hidden;
-    background-color: white;
+    background-color: #17191A;
     height: 100%;
 }
 
@@ -86,22 +86,17 @@ h1 {
 
     <div class="capture">
     <button class = "btn btn-default" type="button" onclick="capture()">Capture</button>
+    <br><br>
+    <form action= "">
+        Name: <input type="text" name="name" value="" id="getname">
+        <button class = "btn btn-default" type="button" onclick="add()">Add User</button>
+    </form>
     </div>
+
 </div>
 
-<!--<script src="https://raw.githubusercontent.com/jayendrajog/LA-Hacks-2016/myo/web/js/myo.js" type="text/javascript"></script>-->
-<script src="web/js/myo.js" type="text/javascript"></script>
 <script>
 
-var userID = 0;
-var name = "";
-
-$(document).ready(function() {
-    myoAuth();
-});
-
-// var userID = 0;
-// var name = "";
 var captured = false;
 var video = document.querySelector("#videoElement");
  
@@ -144,18 +139,6 @@ function dataURItoBlob(dataURI) {
     return new Blob([new Uint8Array(content)], {type: mimestring});
 }
 
-function faceCheckSuccess(data) {
-    //console.log(data);
-    //console.log(data[0]);
-    //console.log(data["UserID"]);
-    var arr = JSON.parse(data);
-    //console.log(arr);
-    userID = arr["UserID"];
-    name = arr["Name"];
-    //console.log(data["UserID"]);
-
-}
-
 function capture() {
     var canvas;
     canvas = document.getElementById('snapshot');
@@ -174,94 +157,47 @@ function capture() {
         contentType: false,
         processData: false,
         data: fd,
-        success: faceCheckSuccess
+        success: captureSuccess
     });
 }
 
-function myoAuth() {
-    Myo.connect('com.myojs.main');
+function captureSuccess(data) {
+    var text = JSON.parse(data);
+    var userID = text['UserID'];
+    var name = text['Name'];
 
-    //Start talking with Myo Connect
-    //Myo.connect('com.stolksdorf.myAwesomeApp');
-    console.log('Hello Myo!');
-    //this.vibrate();
+    console.log(name);
 
-    var gesturePasscode = [];
+    var result = document.getElementById("snapshot");
+    parent = result.parentNode;
+    //parent.removeChild(result);
 
-    Myo.on('wave_out', function(){
-        console.log('wave_out!');
-        this.vibrate();
-        gesturePasscode.push(1);
+    var para = document.createElement("h1");
+    var message = document.createTextNode("Welcome, " + name + "!");
+    para.appendChild(message);
+    parent.appendChild(para);
+}
+
+function add(){
+    var name = document.getElementById('getname').value;
+    var canvas;
+    canvas = document.getElementById('snapshot');
+
+    var context = canvas.getContext('2d');
+    context.drawImage(videoElement, 0, 0, 800, 600);    
+
+    var dataURL = canvas.toDataURL('image/jpeg', 1.0);
+    var blob = dataURItoBlob(dataURL);
+    var fd = new FormData(document.forms[0]);
+    fd.append("file", blob);
+
+     $.ajax({
+        method: "POST",
+        url: "http://sparck.co/api/user?name="+name+"",
+        contentType: false,
+        processData: false,
+        data: fd
     });
-    
-    Myo.on("wave_in", function() {
-        console.log('wave_in!');
-        this.vibrate();
-        gesturePasscode.push(2);
-    });
-
-    Myo.on('fist', function(){
-        console.log('fist!');
-        this.vibrate();
-        gesturePasscode.push(3);
-    });
-
-    Myo.on("fingers_spread", function() {
-        console.log('fingers_spread!');
-        this.vibrate();
-        gesturePasscode.push(4);
-    });
-
-    
-
-    //Myo.on("double_tab", function() {
-    //    console.log('double_tab!');
-        //this.vibrate();
-    //});
-
-    Myo.on("orientation", function(data) {
-        //console.log(data.y);
-        /*if (data.y > 0.45) {
-            console.log("up");
-        } else if (data.y < -0.35) {
-            console.log("down");
-        }*/
-
-        if (data.y > 0.45) {
-            console.log("up");
-            //console.log(gesturePasscode);
-            var passcode = 0;
-            //console.log(gesturePasscode.length);
-            if (gesturePasscode.length >= 4) {
-                for (var i = 0; i < 4; i++) {
-                    //console.log()
-                    //console.log(gesturePasscode[i]*Math.pow(5, i));
-                    passcode += gesturePasscode[i]*Math.pow(5, i);
-                }
-
-                console.log(passcode);
-                gesturePasscode = [];
-
-                $.ajax({
-                    method: "POST",
-                    url: "http://sparck.co/api/myo_password?userid="+userID + "&password=" + passcode,
-                    contentType: false,
-                    processData: false
-                });
-
-
-
-            } else {
-                // don't do anything
-                //console.log("nah");
-            }
-        } else if (data.y < -0.35) {
-            console.log("down");
-            gesturePasscode = [];
-        }
-
-    });
-
 }
 
 </script>
