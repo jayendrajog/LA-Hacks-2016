@@ -5,12 +5,12 @@ import (
 	"face_auth"
 	"fmt"
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 	"log"
 	"math/rand"
 	"net/http"
 	"time"
 	"ws"
-    "github.com/rs/cors"
 )
 
 func Log(handler http.HandlerFunc) http.HandlerFunc {
@@ -39,17 +39,20 @@ func Run(port uint16) {
 	r.HandleFunc("/sessions/{ID:[0-9]+}/reaction", Log(updateReaction)).Methods("POST")
 	r.HandleFunc("/sessions/{ID:[0-9]+}/ws", Log(ws.ServeWs)).Methods("GET")
 
-	r.HandleFunc("/creds", Log(getCreds)).Methods("GET")
-
 	r.HandleFunc("/upload", Log(upload)).Methods("POST")
 	r.HandleFunc("/photo", Log(checkFace)).Methods("POST")
 	r.HandleFunc("/photos", Log(checkFace)).Methods("POST")
+
+	r.HandleFunc("/creds", Log(getCreds)).Methods("GET")
+
+	r.HandleFunc("/myo_password", Log(check_password)).Methods("POST")
+
 	c := cors.New(cors.Options{
-	    AllowedOrigins: []string{"*"},
-	    AllowedMethods: []string{"GET","POST","OPTIONS"},
-	    AllowCredentials: true,
+		AllowedOrigins:   []string{"*"},
+		AllowedMethods:   []string{"GET", "POST", "OPTIONS"},
+		AllowCredentials: true,
 	})
-    handler := c.Handler(r)
+	handler := c.Handler(r)
 
 	// r.HandleFunc("/shortlink/{linkID}", deleteShortlink).Methods("DELETE")
 

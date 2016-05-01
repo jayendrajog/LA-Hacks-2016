@@ -6,6 +6,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"passwords"
 )
 
 const DETECT_URL = "https://api.projectoxford.ai/face/v1.0/detect?returnFaceId=true&returnFaceLandmarks=false&returnFaceAttributes=age"
@@ -16,14 +17,13 @@ var FaceAPIHeaders = map[string]string{
 	"Ocp-Apim-Subscription-Key": "38c44ac804c44f6e97673d815163a1db",
 }
 
-var FACES_DB = map[string]string{
-	"JAY":   "http://sparck.co/faces/JAY.jpg",
-	"ADAM":  "http://sparck.co/faces/ADAM.jpg",
-	"ANNA":  "http://sparck.co/faces/anna.jpg",
-	"JAHAN": "http://sparck.co/faces/JAHAN.jpg",
+var FACES_DB = map[uint]string{
+	1: "http://sparck.co/faces/ADAM.jpg",
+	2: "http://sparck.co/faces/JAY.jpg",
+	3: "http://sparck.co/faces/ANTHONY.jpg",
 }
 
-var Faces_ids = make(map[string]string)
+var Faces_ids = make(map[uint]string)
 
 var client *http.Client
 
@@ -107,14 +107,19 @@ func GetFaceID(url string) (string, error) {
 	return faceResponse[0].FaceId, nil
 }
 
-func GetFaceIDWorker(name, url string, responseChan chan [2]string) {
-	log.Println("generating id for ", name)
+type UintString struct {
+	Uint   uint
+	String string
+}
+
+func GetFaceIDWorker(user uint, url string, responseChan chan UintString) {
+	log.Println("generating id for ", user)
 	id, err := GetFaceID(url)
 	if err != nil {
 		log.Println(err)
 		return
 	}
-	responseChan <- [2]string{name, id}
+	responseChan <- UintString{user, id}
 }
 
 func VerifyFace(faceId1, faceId2 string) (float64, error) {
@@ -161,13 +166,13 @@ func VerifyFace(faceId1, faceId2 string) (float64, error) {
 }
 
 type SimilarityResponse struct {
-	name1      string
-	name2      string
+	user1      uint
+	user2      uint
 	similarity float64
 }
 
-func VerifyFaceWorker(name1, name2, faceId1, faceId2 string, responseChan chan SimilarityResponse) {
-	log.Println("calculating similarity for ", name1, faceId1, name2, faceId2)
+func VerifyFaceWorker(user1, user2 uint, faceId1, faceId2 string, responseChan chan SimilarityResponse) {
+	log.Println("calculating similarity for ", user1, faceId1, user2, faceId2)
 	similarity, err := VerifyFace(faceId1, faceId2)
 	if err != nil {
 		log.Println(err)
@@ -175,27 +180,27 @@ func VerifyFaceWorker(name1, name2, faceId1, faceId2 string, responseChan chan S
 	}
 
 	var similarityResponse SimilarityResponse
-	similarityResponse.name1 = name1
-	similarityResponse.name2 = name2
+	similarityResponse.user1 = user1
+	similarityResponse.user2 = user2
 	similarityResponse.similarity = similarity
 	responseChan <- similarityResponse
 }
 
-func ManyGetFacesID(nameUrls map[string]string) {
-	faceIdChan := make(chan [2]string)
+func ManyGetFacesID(nameUrls map[uint]string) {
+	faceIdChan := make(chan UintString)
 	doneChan := make(chan bool)
 
 	count := 0
 
-	for name, url := range FACES_DB {
-		go GetFaceIDWorker(name, url, faceIdChan)
+	for user, url := range nameUrls {
+		go GetFaceIDWorker(user, url, faceIdChan)
 		count += 1
 	}
 
 	go func() {
 		for {
 			face_id := <-faceIdChan
-			Faces_ids[face_id[0]] = face_id[1]
+			Faces_ids[face_id.Uint] = face_id.String
 			count -= 1
 			if count == 0 {
 				doneChan <- true
@@ -207,27 +212,27 @@ func ManyGetFacesID(nameUrls map[string]string) {
 	<-doneChan
 }
 
-func ManyVerifyFace(testname string, faces_ids map[string]string) map[string]float64 {
+func ManyVerifyFace(testuser uint, faces_ids map[uint]string) map[uint]float64 {
 
 	similaritiesChan := make(chan SimilarityResponse)
 
 	doneChan := make(chan bool)
 	count := 0
-	for name, url := range faces_ids {
-		if name == testname {
+	for user, url := range faces_ids {
+		if user == testuser {
 			continue
 		}
-		go VerifyFaceWorker(testname, name, faces_ids[testname], url, similaritiesChan)
+		go VerifyFaceWorker(testuser, user, faces_ids[testuser], url, similaritiesChan)
 		count += 1
 	}
 
-	similarities := make(map[string]float64)
+	similarities := make(map[uint]float64)
 
 	go func() {
 		for {
 			similarityResponse := <-similaritiesChan
 
-			similarities[similarityResponse.name2] = similarityResponse.similarity
+			similarities[similarityResponse.user2] = similarityResponse.similarity
 
 			count -= 1
 			if count == 0 {
@@ -242,32 +247,36 @@ func ManyVerifyFace(testname string, faces_ids map[string]string) map[string]flo
 	return similarities
 }
 
-func CheckFace(testname string) (string, error) {
-	id, err := GetFaceID("http://sparck.co/tempFaces/" + testname)
+func CheckFace(filename string) (string, error) {
+	id, err := GetFaceID("http://sparck.co/tempFaces/" + filename)
 	if err != nil {
 		return "", err
 	}
-	tempFaces_ids := make(map[string]string)
+	tempFaces_ids := make(map[uint]string)
 	for k, v := range Faces_ids {
 		tempFaces_ids[k] = v
 	}
 
-	tempFaces_ids[testname] = id
+	tempFaces_ids[0] = id
 
-	similarities := ManyVerifyFace(testname, tempFaces_ids)
+	similarities := ManyVerifyFace(0, tempFaces_ids)
 
-	maxName := ""
+	var maxUser uint = 0
 	var maxVal float64 = 0
-	for name, val := range similarities {
+	for user, val := range similarities {
 		if val > maxVal {
-			maxName = name
+			maxUser = user
 			maxVal = val
 		}
 	}
 	log.Println(similarities)
 
-	if maxVal > 0.7 {
-		return maxName, nil
+	if maxVal > 0.65 {
+		name, err := passwords.GetName(maxUser)
+		if err != nil {
+			return "", err
+		}
+		return name, nil
 	}
 
 	return "", nil

@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"passwords"
 	"session"
 	"strconv"
 	"time"
@@ -138,9 +139,57 @@ func checkFace(w http.ResponseWriter, r *http.Request) {
 }
 
 func getCreds(w http.ResponseWriter, r *http.Request) {
-	// website := r.FormValue("website")
-	// userID := r.FormValue("userid")
-	// secret := r.FormValue("secret")
+	userIDint, err := strconv.Atoi(r.FormValue("userid"))
+	if err != nil {
+		WriteErrorString(w, "Error parsing userid query value", 400)
+		return
+	}
 
-	WriteJson(w, map[string]interface{}{"Username": "marktai", "Password": "thisistotallysecure"})
+	domain := r.FormValue("domain")
+	if domain == "" {
+		WriteErrorString(w, "domain not in query values", 400)
+		return
+	}
+
+	userID := uint(userIDint)
+
+	ip := r.Header.Get("X-Real-IP")
+	creds, err := passwords.GetCreds(userID, domain, ip)
+	if err != nil {
+		WriteError(w, err, 400)
+		return
+	}
+
+	WriteJson(w, map[string]interface{}{"Username": creds[0], "Password": creds[1]})
+}
+
+func check_password(w http.ResponseWriter, r *http.Request) {
+	userIDint, err := strconv.Atoi(r.FormValue("userid"))
+	if err != nil {
+		WriteError(w, err, 400)
+		return
+	}
+	userID := uint(userIDint)
+
+	passwordint, err := strconv.Atoi(r.FormValue("password"))
+	if err != nil {
+		WriteError(w, err, 400)
+		return
+	}
+	password := uint(passwordint)
+
+	ip := r.Header.Get("X-Real-IP")
+
+	verified, err := passwords.VerifyPassword(userID, password, ip)
+	if err != nil {
+		WriteError(w, err, 400)
+		return
+	}
+
+	if !verified {
+		WriteErrorString(w, "Not verified", 400)
+		return
+	}
+
+	w.WriteHeader(200)
 }
