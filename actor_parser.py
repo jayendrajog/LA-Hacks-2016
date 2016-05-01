@@ -76,7 +76,8 @@ for data in valid:
 
 #print(repr(retArray))
 
-retJSON = json.dumps(retArray)
+retJSON = json.dumps(retArray, sort_keys=True, indent=4, separators=(",", ": "))
+#print(retJSON)
 f = open("faces.json", "w")
 f.write(retJSON)
 
