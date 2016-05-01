@@ -100,6 +100,10 @@ func GetFaceID(url string) (string, error) {
 		return "", err
 	}
 
+	if len(faceResponse) == 0 {
+		return "", errors.New("No face found")
+	}
+
 	return faceResponse[0].FaceId, nil
 }
 

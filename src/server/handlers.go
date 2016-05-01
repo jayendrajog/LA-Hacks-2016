@@ -10,6 +10,7 @@ import (
 	"os"
 	"session"
 	"strconv"
+	"time"
 	"ws"
 )
 
@@ -102,8 +103,6 @@ func upload(w http.ResponseWriter, r *http.Request) {
 
 // upload logic
 func checkFace(w http.ResponseWriter, r *http.Request) {
-	log.Println(*r)
-	log.Println(r.Header)
 	err := r.ParseMultipartForm(32 << 30)
 	if err != nil {
 		WriteError(w, err, 400)
@@ -115,21 +114,21 @@ func checkFace(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer file.Close()
-	// fmt.Fprintf(w, "%v", handler.Header)
-	filePath := "./tempFaces/" + handler.Filename
-	f, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE, 0664)
+	log.Printf("%v", handler.Header)
+	filename := fmt.Sprintf("%d.jpg", time.Now().Unix())
+	f, err := os.OpenFile("./tempFaces/"+filename, os.O_WRONLY|os.O_CREATE, 0664)
 	if err != nil {
 		WriteError(w, err, 500)
 		return
 	}
 	defer f.Close()
 	io.Copy(f, file)
-	name, err := face_auth.CheckFace(handler.Filename)
+	name, err := face_auth.CheckFace(filename)
 	if err != nil {
 		WriteError(w, err, 500)
 		return
 	}
-	err = os.Remove(filePath)
+	// err = os.Remove("./tempFaces/" + filename)
 	if err != nil {
 		WriteError(w, err, 500)
 		return
