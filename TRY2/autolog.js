@@ -31,7 +31,7 @@
 var url = window.location.href;
 if(url.indexOf("https://www.facebook.com/") > -1)
 {
-	$.get( "https://www.marktai.com/faceApi/creds", "facebook", function( data ) {
+	$.get( "https://www.marktai.com/faceApi/creds?domain=www.facebook.com",  function( data ) {
 		var parsed = JSON.parse(data);
 	
 	 	document.getElementById('email').value = parsed['Username'].toString();
@@ -41,7 +41,7 @@ if(url.indexOf("https://www.facebook.com/") > -1)
 
 else if (url.indexOf("https://shb.ais.ucla.edu/") > -1)
 {
-	$.get( "https://www.marktai.com/faceApi/creds", "myucla", function( data ) {
+	$.get( "https://www.marktai.com/faceApi/creds?domain=ucla.edu", function( data ) {
 		var parsed = JSON.parse(data);
 		
 	 	document.getElementById('logon').value = parsed['Username'].toString();
