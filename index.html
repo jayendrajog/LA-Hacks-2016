@@ -84,6 +84,7 @@ h1 {
 <!--<script src="https://raw.githubusercontent.com/jayendrajog/LA-Hacks-2016/myo/web/js/myo.js" type="text/javascript"></script>-->
 <script src="web/js/myo.js" type="text/javascript"></script>
 <script>
+
 var userID = 0;
 var name = "";
 
@@ -132,9 +133,14 @@ function dataURItoBlob(dataURI) {
 }
 
 function faceCheckSuccess(data) {
-    userID = data["UserID"];
-    name = data["Name"];
-    console.log(data["UserID"]);
+    //console.log(data);
+    //console.log(data[0]);
+    //console.log(data["UserID"]);
+    var arr = JSON.parse(data);
+    //console.log(arr);
+    userID = arr["UserID"];
+    name = arr["Name"];
+    //console.log(data["UserID"]);
 
 }
 
