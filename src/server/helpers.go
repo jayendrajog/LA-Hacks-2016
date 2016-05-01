@@ -3,6 +3,7 @@ package server
 import (
 	"encoding/json"
 	"errors"
+	"log"
 	"fmt"
 	"net/http"
 )
@@ -13,6 +14,7 @@ func WriteError(w http.ResponseWriter, err error, errorCode int) {
 	jsonOut, _ := json.Marshal(errorMap)
 	w.WriteHeader(errorCode)
 	w.Write(jsonOut)
+	log.Println(err)
 }
 
 func WriteErrorString(w http.ResponseWriter, errString string, errorCode int) {
