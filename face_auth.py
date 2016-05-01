@@ -22,8 +22,10 @@ detectHeaders = {
 }
 
 res = requests.post(detectURL, data=json.dumps({"url":"http://hellogiggles.com/wp-content/uploads/2015/04/10/anna-kendrick-pitch-perfect-650-430.jpg"}), headers=detectHeaders)
+# prints response
 #print(res.content)
 
+# prints faceId
 detectDict = json.loads(res.content)[0]
 print(detectDict["faceId"])
 
@@ -34,6 +36,9 @@ print(detectDict["faceId"])
 
 
 
+########################
+NOT USEFUL BELOW HERE
+########################
 
 
 
