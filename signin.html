@@ -1,0 +1,78 @@
+<!Doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta content="AutoLog" name="title">
+<title>AutoLog</title>
+ <style>
+body, html { 
+    overflow-x: hidden; 
+    overflow-y: hidden;
+    background-color: white;
+    height: 100%;
+}
+#container {
+    background: -webkit-linear-gradient(left top, #17191A, #5A8999, #17191A);
+    margin: 0px ajaxuto;
+    width: 100%;
+    height: 100vh;
+}
+h1{
+	text-align: center;
+}
+
+ </style>
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+
+</head>
+<body>
+	<div class = "container">
+	<h1> Password signin </h1>
+		<form action= "">
+	        Facebook username: <input type="text" name="fbname" value="" id="fbname"><br>
+	        Facebook password: <input type="text" name="fbpass" value="" id="fbpass"><br>
+	        MyUCLA username: <input type="text" name="uclaname" value="" id="uclaname"><br>
+	        MyUCLA password: <input type="text" name="uclapass" value="" id="uclapass"><br>
+	        <button class = "btn btn-default" type="button" onclick="add()">Add Passwords</button>
+	    </form>
+	</div>
+    <script>
+    	function addfb()
+    	{
+    		var domain_url = "www.facebook.com";
+    		var name = document.getElementById('fbname').value;
+    		document.getElementById('fbname').value = "";
+    		var password = document.getElementById('fbpass').value;
+    		document.getElementById('fbpass').value = "";
+    		$.ajax({
+		        method: "POST",
+		        url: "http://sparck.co/api/creds?username="+name+"&password="+password+"&domain="+domain_url,
+		        contentType: false,
+		        processData: false
+	    	});
+    	}
+    	function adducla()
+    	{
+    		var domain_url = "ucla.edu";
+    		var name = document.getElementById('uclaname').value;
+    		 document.getElementById('uclaname').value = "";
+    		var password = document.getElementById('uclapass').value;
+    		document.getElementById('uclapass').value = "";
+    		$.ajax({
+		        method: "POST",
+		        url: "http://sparck.co/api/creds?username="+name+"&password="+password+"&domain="+domain_url,
+		        contentType: false,
+		        processData: false
+		   	    	});
+    	}
+		function add()
+		{
+			addfb();
+			adducla();
+		}
+    	
+   	</script>
+</body>
+</html>
