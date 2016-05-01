@@ -3,25 +3,55 @@
 <head>
 <meta charset="utf-8">
 <meta content="Sparck" name="title">
-<title>Sparck</title>
+<title>AutoLog</title>
   
 <style>
+
+@font-face {
+    font-family: pirulen;
+    src: url(Glametrix.otf);
+}
+body, html { 
+    overflow-x: hidden; 
+    overflow-y: hidden;
+    background-color: #3284BF; 
+    margin-top: -20px;
+    height: 100%;
+}
+
+
 #container {
+     background-color: #3284BF;
     margin: 0px auto;
-    width: 500px;
+    width: 100%;
     height: 375px;
-    border: 10px #333 solid;
+    height:150vh;
 }
 #videoElement {
     width: 500px;
     height: 375px;
     background-color: #666;
+    margin-right: 100px;
+    margin-left: 100px;
 }
 h1 {
     text-align: center;
+    margin: 20px;
+    font-family: pirulen;
+    font-size: 200%;
+}
+#autolog{
+    font-family: pirulen;
+    font-size: 200%;
 }
 .capture {
     text-align: center;
+}
+
+#snapshot{
+    width: 500px;
+    height: 375px;
+    background-color: gray;
 }
 </style>
 
@@ -34,11 +64,21 @@ h1 {
   
 <body>
 
-<h1>Sparck</h1>
+
 <div id="container">
-    <video autoplay="true" id="videoElement" width="320" height="240">
+    <br>
+    <h1 id-"autolog">AutoLog</h1>
+    <br>
+    <div class="row">
+    <video autoplay="true" id="videoElement" >
      
     </video>
+    <canvas  id="snapshot"> </canvas>
+    </div>
+
+    <div class="capture">
+    <button class = "btn btn-default" type="button" onclick="capture()">Capture</button>
+    </div>
 </div>
 
 <script>
@@ -84,19 +124,19 @@ function dataURItoBlob(dataURI) {
 function capture() {
     var canvas;
 
-    if (!captured) {
-        captured = true;
-        canvas = document.createElement('canvas');
-        document.body.appendChild(canvas);
-        canvas.id = "snapshot";
-        canvas.width = 320;
-        canvas.height = 240;
-    } else {
-        canvas = document.getElementById('snapshot');
-    }
+    // if (!captured) {
+    //     captured = true;
+    //     canvas = document.createElement('canvas');
+    //     document.body.appendChild(canvas);
+    //     canvas.id = "snapshot";
+    //     canvas.width = 320;
+    //     canvas.height = 240;
+    // } else {
+     canvas = document.getElementById('snapshot');
+    //}
 
     var context = canvas.getContext('2d');
-    context.drawImage(video, 0, 0, 320, 240);
+    context.drawImage(videoElement, 0, 0, 250, 200);    
 
     var dataURL = canvas.toDataURL('image/jpeg', 1.0);
     var blob = dataURItoBlob(dataURL);
@@ -116,9 +156,7 @@ function capture() {
 
 <br>
 
-<div class="capture">
-    <button type="button" onclick="capture()">Capture</button>
-</div>
+
 
 <br>
 

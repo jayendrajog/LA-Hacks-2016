@@ -1,0 +1,24 @@
+{
+	"manifest_version": 2,
+	"name": "Kinect Autologin",
+	"version": "1",
+
+	"description": "Autologin to various websites",
+	"author": "Jayendra Jog",
+
+	"permissions": [ "activeTab", "tabs"],
+
+	// "background": {
+ //    	"scripts": ["jquery-2.2.3.min.js", "autolog.js"]
+ //  	}
+
+  	
+  	"content_scripts": [
+    {
+      "matches": ["https://www.facebook.com/", "https://shb.ais.ucla.edu/*" ],
+      "js": ["jquery-2.2.3.min.js", "autolog.js"]
+    }
+  ]
+
+
+}
