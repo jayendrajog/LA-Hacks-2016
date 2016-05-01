@@ -37,4 +37,14 @@ function myoTest() {
 		//this.vibrate();
 	});
 
+	Myo.on("orientation", function(data) {
+		//console.log(data.y);
+		if (data.y > 0.45) {
+			console.log("up");
+		} else if (data.y < -0.35) {
+			console.log("down");
+		}
+
+	});
+
 }
